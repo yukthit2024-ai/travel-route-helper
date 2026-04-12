@@ -10,22 +10,28 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import android.os.Environment;
 
 public class FileUtils {
-    private static final String ROUTES_DIR = "routes";
+    private static final String APP_DIR_NAME = "Travel_Route_Helper";
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
-    public static File getRoutesDirectory(Context context) {
-        File dir = new File(context.getExternalFilesDir(null), ROUTES_DIR);
-        if (!dir.exists()) {
-            dir.mkdirs();
+    public static File getRoutesDirectory() {
+        File downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+        File appDir = new File(downloadsDir, APP_DIR_NAME);
+        if (!appDir.exists()) {
+            appDir.mkdirs();
         }
-        return dir;
+        return appDir;
     }
 
     public static void saveRoute(Context context, Route route) throws IOException {
-        File dir = getRoutesDirectory(context);
-        File file = new File(dir, route.getRouteName() + ".json");
+        File routesDir = getRoutesDirectory();
+        File routeFolder = new File(routesDir, route.getRouteName());
+        if (!routeFolder.exists()) {
+            routeFolder.mkdirs();
+        }
+        File file = new File(routeFolder, route.getRouteName() + ".json");
         try (FileWriter writer = new FileWriter(file)) {
             gson.toJson(route, writer);
         }
@@ -38,12 +44,21 @@ public class FileUtils {
     }
 
     public static List<File> listRouteFiles(Context context) {
-        File dir = getRoutesDirectory(context);
-        File[] files = dir.listFiles((d, name) -> name.endsWith(".json"));
+        File routesDir = getRoutesDirectory();
         List<File> routeFiles = new ArrayList<>();
-        if (files != null) {
-            for (File f : files) routeFiles.add(f);
-        }
+        findJsonFiles(routesDir, routeFiles);
         return routeFiles;
+    }
+
+    private static void findJsonFiles(File dir, List<File> resultList) {
+        File[] files = dir.listFiles();
+        if (files == null) return;
+        for (File f : files) {
+            if (f.isDirectory()) {
+                findJsonFiles(f, resultList);
+            } else if (f.getName().endsWith(".json")) {
+                resultList.add(f);
+            }
+        }
     }
 }
