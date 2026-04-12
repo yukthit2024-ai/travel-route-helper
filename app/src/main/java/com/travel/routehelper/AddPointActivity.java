@@ -28,6 +28,7 @@ public class AddPointActivity extends AppCompatActivity {
     private static final int PERMISSION_REQUEST_LOCATION = 1001;
     
     private String filePath;
+    private int pointIndex = -1;
     private FusedLocationProviderClient fusedLocationClient;
     private double currentLat = 0;
     private double currentLng = 0;
@@ -58,7 +59,20 @@ public class AddPointActivity extends AppCompatActivity {
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
-        requestLocation();
+        pointIndex = getIntent().getIntExtra("POINT_INDEX", -1);
+        if (pointIndex != -1) {
+            getSupportActionBar().setTitle("Edit Point");
+            String name = getIntent().getStringExtra("POINT_NAME");
+            currentLat = getIntent().getDoubleExtra("POINT_LAT", 0);
+            currentLng = getIntent().getDoubleExtra("POINT_LNG", 0);
+            
+            editTextPointName.setText(name);
+            textViewLocation.setText(String.format("Lat: %.6f\nLng: %.6f", currentLat, currentLng));
+            buttonRefresh.setEnabled(false);
+            buttonRefresh.setAlpha(0.5f);
+        } else {
+            requestLocation();
+        }
 
         buttonRefresh.setOnClickListener(v -> requestLocation());
         buttonSave.setOnClickListener(v -> savePoint());
@@ -108,12 +122,23 @@ public class AddPointActivity extends AppCompatActivity {
             File file = new File(filePath);
             Route route = FileUtils.loadRoute(file);
             
-            Point newPoint = new Point(name, currentLat, currentLng, DateUtils.getCurrentTimestampISO());
-            route.addPoint(newPoint);
+            if (pointIndex != -1) {
+                // Edit Mode: replace the point at pointIndex
+                Point oldPoint = route.getPoints().get(pointIndex);
+                // Keep coordinates and timestamp from the original point if desired, 
+                // but user said "modify Point name, but not GPS coordinates".
+                // We'll create a new Point with updated name but same coordinates.
+                Point updatedPoint = new Point(name, oldPoint.getLatitude(), oldPoint.getLongitude(), oldPoint.getTimestamp());
+                route.getPoints().set(pointIndex, updatedPoint);
+            } else {
+                // Add Mode
+                Point newPoint = new Point(name, currentLat, currentLng, DateUtils.getCurrentTimestampISO());
+                route.addPoint(newPoint);
+            }
             
             FileUtils.saveRoute(this, route);
             
-            Toast.makeText(this, "Point saved", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, pointIndex != -1 ? "Point updated" : "Point saved", Toast.LENGTH_SHORT).show();
             finish();
         } catch (IOException e) {
             Toast.makeText(this, "Failed to save point: " + e.getMessage(), Toast.LENGTH_LONG).show();

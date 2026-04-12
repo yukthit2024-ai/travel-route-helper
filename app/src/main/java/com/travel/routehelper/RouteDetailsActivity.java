@@ -10,12 +10,13 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.travel.routehelper.adapters.PointAdapter;
+import com.travel.routehelper.models.Point;
 import com.travel.routehelper.models.Route;
 import com.travel.routehelper.utils.FileUtils;
 import java.io.File;
 import java.io.IOException;
 
-public class RouteDetailsActivity extends AppCompatActivity {
+public class RouteDetailsActivity extends AppCompatActivity implements PointAdapter.OnPointClickListener {
 
     private String filePath;
     private Route currentRoute;
@@ -56,7 +57,7 @@ public class RouteDetailsActivity extends AppCompatActivity {
             getSupportActionBar().setTitle(currentRoute.getRouteName());
             
             if (adapter == null) {
-                adapter = new PointAdapter(currentRoute.getPoints());
+                adapter = new PointAdapter(currentRoute.getPoints(), this);
                 recyclerView.setAdapter(adapter);
             } else {
                 adapter.updateData(currentRoute.getPoints());
@@ -65,6 +66,18 @@ public class RouteDetailsActivity extends AppCompatActivity {
             Toast.makeText(this, "Failed to load route: " + e.getMessage(), Toast.LENGTH_LONG).show();
             finish();
         }
+    }
+
+    @Override
+    public void onPointClick(int position) {
+        Point point = currentRoute.getPoints().get(position);
+        Intent intent = new Intent(this, AddPointActivity.class);
+        intent.putExtra("FILE_PATH", filePath);
+        intent.putExtra("POINT_INDEX", position);
+        intent.putExtra("POINT_NAME", point.getName());
+        intent.putExtra("POINT_LAT", point.getLatitude());
+        intent.putExtra("POINT_LNG", point.getLongitude());
+        startActivity(intent);
     }
 
     @Override

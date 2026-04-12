@@ -13,9 +13,15 @@ import java.util.List;
 public class PointAdapter extends RecyclerView.Adapter<PointAdapter.PointViewHolder> {
 
     private List<Point> points;
+    private OnPointClickListener listener;
 
-    public PointAdapter(List<Point> points) {
+    public interface OnPointClickListener {
+        void onPointClick(int position);
+    }
+
+    public PointAdapter(List<Point> points, OnPointClickListener listener) {
         this.points = points;
+        this.listener = listener;
     }
 
     @NonNull
@@ -31,6 +37,11 @@ public class PointAdapter extends RecyclerView.Adapter<PointAdapter.PointViewHol
         holder.textViewPointName.setText(point.getName());
         holder.textViewPointLocation.setText(String.format("Lat: %.6f, Lng: %.6f", point.getLatitude(), point.getLongitude()));
         holder.textViewPointTimestamp.setText(point.getTimestamp());
+        holder.itemView.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onPointClick(position);
+            }
+        });
     }
 
     @Override
