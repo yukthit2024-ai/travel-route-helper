@@ -12,6 +12,8 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.Priority;
+import com.google.android.gms.tasks.CancellationTokenSource;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.travel.routehelper.models.Point;
@@ -32,6 +34,7 @@ public class AddPointActivity extends AppCompatActivity {
     
     private TextInputEditText editTextPointName;
     private TextView textViewLocation;
+    private CancellationTokenSource cancellationTokenSource;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,11 +54,13 @@ public class AddPointActivity extends AppCompatActivity {
         editTextPointName = findViewById(R.id.editTextPointName);
         textViewLocation = findViewById(R.id.textViewLocation);
         MaterialButton buttonSave = findViewById(R.id.buttonSave);
+        MaterialButton buttonRefresh = findViewById(R.id.buttonRefreshLocation);
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         requestLocation();
 
+        buttonRefresh.setOnClickListener(v -> requestLocation());
         buttonSave.setOnClickListener(v -> savePoint());
     }
 
@@ -65,17 +70,26 @@ public class AddPointActivity extends AppCompatActivity {
             return;
         }
 
-        fusedLocationClient.getLastLocation().addOnSuccessListener(this, location -> {
-            if (location != null) {
-                currentLat = location.getLatitude();
-                currentLng = location.getLongitude();
-                textViewLocation.setText(String.format("Lat: %.6f\nLng: %.6f", currentLat, currentLng));
-            } else {
-                textViewLocation.setText("Location unavailable. Check GPS settings.");
-            }
-        }).addOnFailureListener(e -> {
-            textViewLocation.setText("Failed to get location: " + e.getMessage());
-        });
+        textViewLocation.setText("Requesting fresh location...");
+        
+        if (cancellationTokenSource != null) {
+            cancellationTokenSource.cancel();
+        }
+        cancellationTokenSource = new CancellationTokenSource();
+
+        fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, cancellationTokenSource.getToken())
+            .addOnSuccessListener(this, location -> {
+                if (location != null) {
+                    currentLat = location.getLatitude();
+                    currentLng = location.getLongitude();
+                    textViewLocation.setText(String.format("Lat: %.6f\nLng: %.6f", currentLat, currentLng));
+                } else {
+                    textViewLocation.setText("Location unavailable. Try refreshing.");
+                }
+            })
+            .addOnFailureListener(e -> {
+                textViewLocation.setText("Failed to get location: " + e.getMessage());
+            });
     }
 
     private void savePoint() {
@@ -116,6 +130,13 @@ public class AddPointActivity extends AppCompatActivity {
                 Toast.makeText(this, "Location permission denied", Toast.LENGTH_SHORT).show();
                 textViewLocation.setText("Permission denied.");
             }
+        }
+    }
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (cancellationTokenSource != null) {
+            cancellationTokenSource.cancel();
         }
     }
 }
