@@ -122,6 +122,14 @@ public class RouteDetailsActivity extends AppCompatActivity implements PointAdap
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
+
+        // Fetch last known location immediately as a baseline
+        fusedLocationClient.getLastLocation().addOnSuccessListener(this, location -> {
+            if (location != null && adapter != null) {
+                adapter.updateCurrentLocation(location);
+            }
+        });
+
         LocationRequest locationRequest = new LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 10000)
                 .setMinUpdateIntervalMillis(5000)
                 .build();
