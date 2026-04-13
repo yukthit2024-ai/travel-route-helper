@@ -18,11 +18,15 @@ import android.text.style.StyleSpan;
 import android.graphics.Typeface;
 import android.graphics.Color;
 
-public class PointAdapter extends RecyclerView.Adapter<PointAdapter.PointViewHolder> {
+public class PointAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+
+    private static final int TYPE_POINT = 0;
+    private static final int TYPE_CURRENT_LOCATION = 1;
 
     private List<Point> points;
     private OnPointClickListener listener;
     private Location currentLocation;
+    private int userRowPosition = 0; // Default to top
 
     public interface OnPointClickListener {
         void onPointClick(int position);
@@ -38,15 +42,52 @@ public class PointAdapter extends RecyclerView.Adapter<PointAdapter.PointViewHol
         notifyDataSetChanged();
     }
 
-    @NonNull
-    @Override
-    public PointViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_point, parent, false);
-        return new PointViewHolder(view);
+    public void setUserRowPosition(int position) {
+        if (points != null && position >= 0 && position <= points.size()) {
+            this.userRowPosition = position;
+            notifyDataSetChanged();
+        }
     }
 
     @Override
-    public void onBindViewHolder(@NonNull PointViewHolder holder, int position) {
+    public int getItemViewType(int position) {
+        return (position == userRowPosition) ? TYPE_CURRENT_LOCATION : TYPE_POINT;
+    }
+
+    @NonNull
+    @Override
+    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        if (viewType == TYPE_CURRENT_LOCATION) {
+            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_current_location, parent, false);
+            return new CurrentLocationViewHolder(view);
+        } else {
+            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_point, parent, false);
+            return new PointViewHolder(view);
+        }
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+        if (holder instanceof CurrentLocationViewHolder) {
+            bindCurrentLocation((CurrentLocationViewHolder) holder);
+        } else if (holder instanceof PointViewHolder) {
+            // Adjust position for the points list
+            int pointIndex = (position > userRowPosition) ? position - 1 : position;
+            bindPoint((PointViewHolder) holder, pointIndex);
+        }
+    }
+
+    private void bindCurrentLocation(CurrentLocationViewHolder holder) {
+        // We could update status text based on distance to next point if needed
+        if (currentLocation != null) {
+            holder.textViewStatus.setText("Tracking current location...");
+        } else {
+            holder.textViewStatus.setText("Waiting for GPS...");
+        }
+    }
+
+    private void bindPoint(PointViewHolder holder, int position) {
+        if (points == null || position < 0 || position >= points.size()) return;
         Point point = points.get(position);
         SpannableStringBuilder builder = new SpannableStringBuilder();
         
@@ -87,6 +128,7 @@ public class PointAdapter extends RecyclerView.Adapter<PointAdapter.PointViewHol
 
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) {
+                // In this method, the 'position' parameter is already the adjusted point index.
                 listener.onPointClick(position);
             }
         });
@@ -94,7 +136,7 @@ public class PointAdapter extends RecyclerView.Adapter<PointAdapter.PointViewHol
 
     @Override
     public int getItemCount() {
-        return points.size();
+        return (points != null) ? points.size() + 1 : 1;
     }
 
     public void updateData(List<Point> newPoints) {
@@ -111,6 +153,15 @@ public class PointAdapter extends RecyclerView.Adapter<PointAdapter.PointViewHol
             textViewPointLocation = itemView.findViewById(R.id.textViewPointLocation);
             textViewPointTimestamp = itemView.findViewById(R.id.textViewPointTimestamp);
             textViewPointTypes = itemView.findViewById(R.id.textViewPointTypes);
+        }
+    }
+
+    static class CurrentLocationViewHolder extends RecyclerView.ViewHolder {
+        TextView textViewStatus;
+
+        CurrentLocationViewHolder(@NonNull View itemView) {
+            super(itemView);
+            textViewStatus = itemView.findViewById(R.id.textViewCurrentStatus);
         }
     }
 }
