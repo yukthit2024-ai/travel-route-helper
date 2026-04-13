@@ -17,8 +17,7 @@
             android:id="@+id/textViewPointName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="16sp"
-            android:textStyle="bold" />
+            android:textSize="16sp" />
 
         <TextView
             android:id="@+id/textViewPointLocation"
@@ -36,15 +35,6 @@
             android:textSize="10sp"
             android:textColor="@android:color/darker_gray"
             android:visibility="gone" />
-
-        <TextView
-            android:id="@+id/textViewPointDistance"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:textSize="12sp"
-            android:textColor="@android:color/holo_blue_dark"
-            android:textStyle="bold" />
 
         <TextView
             android:id="@+id/textViewPointTypes"

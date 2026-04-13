@@ -11,6 +11,12 @@ import com.travel.routehelper.models.Point;
 import java.util.List;
 import android.text.TextUtils;
 import android.location.Location;
+import android.text.SpannableStringBuilder;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.StyleSpan;
+import android.graphics.Typeface;
+import android.graphics.Color;
 
 public class PointAdapter extends RecyclerView.Adapter<PointAdapter.PointViewHolder> {
 
@@ -42,10 +48,14 @@ public class PointAdapter extends RecyclerView.Adapter<PointAdapter.PointViewHol
     @Override
     public void onBindViewHolder(@NonNull PointViewHolder holder, int position) {
         Point point = points.get(position);
-        holder.textViewPointName.setText(point.getName());
-        holder.textViewPointLocation.setText(String.format("Lat: %.6f, Lng: %.6f", point.getLatitude(), point.getLongitude()));
-        holder.textViewPointTimestamp.setText(point.getTimestamp());
+        SpannableStringBuilder builder = new SpannableStringBuilder();
         
+        // 1. Add Point Name (Bold)
+        int startName = builder.length();
+        builder.append(point.getName());
+        builder.setSpan(new StyleSpan(Typeface.BOLD), startName, builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+        // 2. Add Distance if available (Bold, Color)
         if (currentLocation != null) {
             float[] results = new float[1];
             Location.distanceBetween(currentLocation.getLatitude(), currentLocation.getLongitude(),
@@ -54,15 +64,18 @@ public class PointAdapter extends RecyclerView.Adapter<PointAdapter.PointViewHol
             
             String distanceStr;
             if (distanceInMeters < 1000) {
-                distanceStr = String.format("%.0f m away", distanceInMeters);
+                distanceStr = String.format(" (%.0f m)", distanceInMeters);
             } else {
-                distanceStr = String.format("%.1f km away", distanceInMeters / 1000f);
+                distanceStr = String.format(" (%.1f km)", distanceInMeters / 1000f);
             }
-            holder.textViewPointDistance.setVisibility(View.VISIBLE);
-            holder.textViewPointDistance.setText(distanceStr);
-        } else {
-            holder.textViewPointDistance.setVisibility(View.GONE);
+            
+            int startDist = builder.length();
+            builder.append(distanceStr);
+            builder.setSpan(new StyleSpan(Typeface.BOLD), startDist, builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            builder.setSpan(new ForegroundColorSpan(Color.parseColor("#009688")), startDist, builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
+
+        holder.textViewPointName.setText(builder);
 
         List<String> types = point.getTypes();
         if (types != null && !types.isEmpty()) {
@@ -90,7 +103,7 @@ public class PointAdapter extends RecyclerView.Adapter<PointAdapter.PointViewHol
     }
 
     static class PointViewHolder extends RecyclerView.ViewHolder {
-        TextView textViewPointName, textViewPointLocation, textViewPointTimestamp, textViewPointTypes, textViewPointDistance;
+        TextView textViewPointName, textViewPointLocation, textViewPointTimestamp, textViewPointTypes;
 
         PointViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -98,7 +111,6 @@ public class PointAdapter extends RecyclerView.Adapter<PointAdapter.PointViewHol
             textViewPointLocation = itemView.findViewById(R.id.textViewPointLocation);
             textViewPointTimestamp = itemView.findViewById(R.id.textViewPointTimestamp);
             textViewPointTypes = itemView.findViewById(R.id.textViewPointTypes);
-            textViewPointDistance = itemView.findViewById(R.id.textViewPointDistance);
         }
     }
 }
