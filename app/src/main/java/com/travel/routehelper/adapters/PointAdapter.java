@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.travel.routehelper.R;
 import com.travel.routehelper.models.Point;
 import java.util.List;
+import android.text.TextUtils;
 
 public class PointAdapter extends RecyclerView.Adapter<PointAdapter.PointViewHolder> {
 
@@ -37,6 +38,15 @@ public class PointAdapter extends RecyclerView.Adapter<PointAdapter.PointViewHol
         holder.textViewPointName.setText(point.getName());
         holder.textViewPointLocation.setText(String.format("Lat: %.6f, Lng: %.6f", point.getLatitude(), point.getLongitude()));
         holder.textViewPointTimestamp.setText(point.getTimestamp());
+        
+        List<String> types = point.getTypes();
+        if (types != null && !types.isEmpty()) {
+            holder.textViewPointTypes.setVisibility(View.VISIBLE);
+            holder.textViewPointTypes.setText(TextUtils.join(", ", types));
+        } else {
+            holder.textViewPointTypes.setVisibility(View.GONE);
+        }
+
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) {
                 listener.onPointClick(position);
@@ -55,13 +65,14 @@ public class PointAdapter extends RecyclerView.Adapter<PointAdapter.PointViewHol
     }
 
     static class PointViewHolder extends RecyclerView.ViewHolder {
-        TextView textViewPointName, textViewPointLocation, textViewPointTimestamp;
+        TextView textViewPointName, textViewPointLocation, textViewPointTimestamp, textViewPointTypes;
 
         PointViewHolder(@NonNull View itemView) {
             super(itemView);
             textViewPointName = itemView.findViewById(R.id.textViewPointName);
             textViewPointLocation = itemView.findViewById(R.id.textViewPointLocation);
             textViewPointTimestamp = itemView.findViewById(R.id.textViewPointTimestamp);
+            textViewPointTypes = itemView.findViewById(R.id.textViewPointTypes);
         }
     }
 }

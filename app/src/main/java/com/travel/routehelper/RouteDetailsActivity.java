@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Toast;
+import java.util.ArrayList;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -77,6 +78,7 @@ public class RouteDetailsActivity extends AppCompatActivity implements PointAdap
         intent.putExtra("POINT_NAME", point.getName());
         intent.putExtra("POINT_LAT", point.getLatitude());
         intent.putExtra("POINT_LNG", point.getLongitude());
+        intent.putStringArrayListExtra("POINT_TYPES", new ArrayList<>(point.getTypes()));
         startActivity(intent);
     }
 

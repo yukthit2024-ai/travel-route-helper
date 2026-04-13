@@ -20,8 +20,11 @@ import com.travel.routehelper.models.Point;
 import com.travel.routehelper.models.Route;
 import com.travel.routehelper.utils.DateUtils;
 import com.travel.routehelper.utils.FileUtils;
+import android.widget.CheckBox;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class AddPointActivity extends AppCompatActivity {
 
@@ -35,6 +38,7 @@ public class AddPointActivity extends AppCompatActivity {
     
     private TextInputEditText editTextPointName;
     private TextView textViewLocation;
+    private CheckBox checkboxPetrol, checkboxFood, checkboxToll, checkboxToilet;
     private CancellationTokenSource cancellationTokenSource;
 
     @Override
@@ -54,6 +58,10 @@ public class AddPointActivity extends AppCompatActivity {
 
         editTextPointName = findViewById(R.id.editTextPointName);
         textViewLocation = findViewById(R.id.textViewLocation);
+        checkboxPetrol = findViewById(R.id.checkboxPetrol);
+        checkboxFood = findViewById(R.id.checkboxFood);
+        checkboxToll = findViewById(R.id.checkboxToll);
+        checkboxToilet = findViewById(R.id.checkboxToilet);
         MaterialButton buttonSave = findViewById(R.id.buttonSave);
         MaterialButton buttonRefresh = findViewById(R.id.buttonRefreshLocation);
 
@@ -65,9 +73,18 @@ public class AddPointActivity extends AppCompatActivity {
             String name = getIntent().getStringExtra("POINT_NAME");
             currentLat = getIntent().getDoubleExtra("POINT_LAT", 0);
             currentLng = getIntent().getDoubleExtra("POINT_LNG", 0);
+            ArrayList<String> types = getIntent().getStringArrayListExtra("POINT_TYPES");
             
             editTextPointName.setText(name);
             textViewLocation.setText(String.format("Lat: %.6f\nLng: %.6f", currentLat, currentLng));
+            
+            if (types != null) {
+                if (types.contains("Petrol")) checkboxPetrol.setChecked(true);
+                if (types.contains("Food")) checkboxFood.setChecked(true);
+                if (types.contains("Toll")) checkboxToll.setChecked(true);
+                if (types.contains("Toilet")) checkboxToilet.setChecked(true);
+            }
+            
             buttonRefresh.setEnabled(false);
             buttonRefresh.setAlpha(0.5f);
         } else {
@@ -118,6 +135,12 @@ public class AddPointActivity extends AppCompatActivity {
             return;
         }
 
+        List<String> selectedTypes = new ArrayList<>();
+        if (checkboxPetrol.isChecked()) selectedTypes.add("Petrol");
+        if (checkboxFood.isChecked()) selectedTypes.add("Food");
+        if (checkboxToll.isChecked()) selectedTypes.add("Toll");
+        if (checkboxToilet.isChecked()) selectedTypes.add("Toilet");
+
         try {
             File file = new File(filePath);
             Route route = FileUtils.loadRoute(file);
@@ -125,14 +148,11 @@ public class AddPointActivity extends AppCompatActivity {
             if (pointIndex != -1) {
                 // Edit Mode: replace the point at pointIndex
                 Point oldPoint = route.getPoints().get(pointIndex);
-                // Keep coordinates and timestamp from the original point if desired, 
-                // but user said "modify Point name, but not GPS coordinates".
-                // We'll create a new Point with updated name but same coordinates.
-                Point updatedPoint = new Point(name, oldPoint.getLatitude(), oldPoint.getLongitude(), oldPoint.getTimestamp());
+                Point updatedPoint = new Point(name, oldPoint.getLatitude(), oldPoint.getLongitude(), oldPoint.getTimestamp(), selectedTypes);
                 route.getPoints().set(pointIndex, updatedPoint);
             } else {
                 // Add Mode
-                Point newPoint = new Point(name, currentLat, currentLng, DateUtils.getCurrentTimestampISO());
+                Point newPoint = new Point(name, currentLat, currentLng, DateUtils.getCurrentTimestampISO(), selectedTypes);
                 route.addPoint(newPoint);
             }
             

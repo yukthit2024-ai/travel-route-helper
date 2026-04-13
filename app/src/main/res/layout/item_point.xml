@@ -35,6 +35,15 @@
             android:textSize="10sp"
             android:textColor="@android:color/darker_gray" />
 
+        <TextView
+            android:id="@+id/textViewPointTypes"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textSize="12sp"
+            android:textStyle="italic"
+            android:textColor="?attr/colorPrimary" />
+
     </LinearLayout>
 
 </com.google.android.material.card.MaterialCardView>
