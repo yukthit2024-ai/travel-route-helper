@@ -33,7 +33,7 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements RouteAdapter.OnRouteClickListener, RouteAdapter.OnRouteLongClickListener {
 
-    private static final int PERMISSION_REQUEST_STORAGE = 2001;
+    private static final int PERMISSION_REQUEST_CODE = 2001;
     private static final int PERMISSION_REQUEST_MANAGE_STORAGE = 2002;
 
     private RecyclerView recyclerView;
@@ -51,32 +51,66 @@ public class MainActivity extends AppCompatActivity implements RouteAdapter.OnRo
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         
-        if (checkStoragePermission()) {
-            loadRoutes();
+        if (checkStandardPermissions()) {
+            if (checkManageStoragePermission()) {
+                loadRoutes();
+            } else {
+                requestManageStoragePermission();
+            }
         } else {
-            requestStoragePermission();
+            requestStandardPermissions();
         }
 
         fab.setOnClickListener(view -> {
-            if (checkStoragePermission()) {
+            if (checkStandardPermissions() && checkManageStoragePermission()) {
                 showCreateRouteDialog();
             } else {
-                requestStoragePermission();
+                if (!checkStandardPermissions()) {
+                    requestStandardPermissions();
+                } else {
+                    requestManageStoragePermission();
+                }
             }
         });
     }
 
-    private boolean checkStoragePermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            return Environment.isExternalStorageManager();
-        } else {
+    private boolean checkStandardPermissions() {
+        int fineLoc = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
+        int coarseLoc = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION);
+        
+        boolean storageOk = true;
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
             int write = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
             int read = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE);
-            return write == PackageManager.PERMISSION_GRANTED && read == PackageManager.PERMISSION_GRANTED;
+            storageOk = (write == PackageManager.PERMISSION_GRANTED && read == PackageManager.PERMISSION_GRANTED);
         }
+        
+        return fineLoc == PackageManager.PERMISSION_GRANTED && 
+               coarseLoc == PackageManager.PERMISSION_GRANTED && 
+               storageOk;
     }
 
-    private void requestStoragePermission() {
+    private boolean checkManageStoragePermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            return Environment.isExternalStorageManager();
+        }
+        return true;
+    }
+
+    private void requestStandardPermissions() {
+        List<String> permissions = new ArrayList<>();
+        permissions.add(Manifest.permission.ACCESS_FINE_LOCATION);
+        permissions.add(Manifest.permission.ACCESS_COARSE_LOCATION);
+        
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+            permissions.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+            permissions.add(Manifest.permission.READ_EXTERNAL_STORAGE);
+        }
+        
+        ActivityCompat.requestPermissions(this, permissions.toArray(new String[0]), PERMISSION_REQUEST_CODE);
+    }
+
+    private void requestManageStoragePermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             try {
                 Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
@@ -88,21 +122,29 @@ public class MainActivity extends AppCompatActivity implements RouteAdapter.OnRo
                 intent.setAction(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
                 startActivityForResult(intent, PERMISSION_REQUEST_MANAGE_STORAGE);
             }
-        } else {
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE},
-                    PERMISSION_REQUEST_STORAGE);
         }
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == PERMISSION_REQUEST_STORAGE) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                loadRoutes();
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            boolean allGranted = true;
+            for (int result : grantResults) {
+                if (result != PackageManager.PERMISSION_GRANTED) {
+                    allGranted = false;
+                    break;
+                }
+            }
+            
+            if (allGranted) {
+                if (checkManageStoragePermission()) {
+                    loadRoutes();
+                } else {
+                    requestManageStoragePermission();
+                }
             } else {
-                Toast.makeText(this, "Storage permission is required to list routes.", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, "Location and Storage permissions are required for the app to function properly.", Toast.LENGTH_LONG).show();
             }
         }
     }
@@ -111,10 +153,10 @@ public class MainActivity extends AppCompatActivity implements RouteAdapter.OnRo
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == PERMISSION_REQUEST_MANAGE_STORAGE) {
-            if (checkStoragePermission()) {
+            if (checkManageStoragePermission()) {
                 loadRoutes();
             } else {
-                Toast.makeText(this, "All Files Access is required to list routes from Downloads.", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, "All Files Access is required to save route data.", Toast.LENGTH_LONG).show();
             }
         }
     }
