@@ -131,8 +131,8 @@ public class RouteDetailsActivity extends AppCompatActivity implements PointAdap
             }
         });
 
-        LocationRequest locationRequest = new LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 10000)
-                .setMinUpdateIntervalMillis(5000)
+        LocationRequest locationRequest = new LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 60000)
+                .setMinUpdateIntervalMillis(30000)
                 .build();
         fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null);
     }
