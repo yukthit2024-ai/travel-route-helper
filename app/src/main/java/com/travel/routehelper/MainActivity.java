@@ -31,6 +31,11 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import androidx.drawerlayout.widget.DrawerLayout;
+import com.google.android.material.navigation.NavigationView;
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.core.view.GravityCompat;
+import androidx.appcompat.widget.Toolbar;
 
 public class MainActivity extends AppCompatActivity implements RouteAdapter.OnRouteClickListener, RouteAdapter.OnRouteLongClickListener {
 
@@ -40,6 +45,8 @@ public class MainActivity extends AppCompatActivity implements RouteAdapter.OnRo
     private RecyclerView recyclerView;
     private RouteAdapter adapter;
     private TextView textViewEmptyState;
+    private DrawerLayout drawerLayout;
+    private NavigationView navigationView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +56,30 @@ public class MainActivity extends AppCompatActivity implements RouteAdapter.OnRo
         recyclerView = findViewById(R.id.recyclerViewRoutes);
         textViewEmptyState = findViewById(R.id.textViewEmptyState);
         FloatingActionButton fab = findViewById(R.id.fabAddRoute);
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        drawerLayout = findViewById(R.id.drawer_layout);
+        navigationView = findViewById(R.id.nav_view);
+
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawerLayout, toolbar,
+                R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawerLayout.addDrawerListener(toggle);
+        toggle.syncState();
+
+        navigationView.setNavigationItemSelectedListener(item -> {
+            int id = item.getItemId();
+            if (id == R.id.nav_settings) {
+                Toast.makeText(this, "Settings coming soon!", Toast.LENGTH_SHORT).show();
+            } else if (id == R.id.nav_help) {
+                Toast.makeText(this, "Help center coming soon!", Toast.LENGTH_SHORT).show();
+            } else if (id == R.id.nav_about) {
+                Toast.makeText(this, "Travel Route Helper v1.0", Toast.LENGTH_SHORT).show();
+            }
+            drawerLayout.closeDrawer(GravityCompat.START);
+            return true;
+        });
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         
@@ -288,6 +319,15 @@ public class MainActivity extends AppCompatActivity implements RouteAdapter.OnRo
         Intent intent = new Intent(this, RouteDetailsActivity.class);
         intent.putExtra("FILE_PATH", file.getAbsolutePath());
         startActivity(intent);
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            drawerLayout.closeDrawer(GravityCompat.START);
+        } else {
+            super.onBackPressed();
+        }
     }
 
     @Override
