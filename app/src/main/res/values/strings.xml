@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Travel RouteHelper</string>
+    <string name="app_name">Travel Route Helper</string>
     <string name="title_route_details">Route Details</string>
     <string name="title_add_point">Add Point</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>

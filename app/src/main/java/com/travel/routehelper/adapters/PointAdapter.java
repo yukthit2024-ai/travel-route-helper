@@ -113,7 +113,7 @@ public class PointAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
             int startDist = builder.length();
             builder.append(distanceStr);
             builder.setSpan(new StyleSpan(Typeface.BOLD), startDist, builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-            builder.setSpan(new ForegroundColorSpan(Color.parseColor("#009688")), startDist, builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            builder.setSpan(new ForegroundColorSpan(Color.parseColor("#4EC3D0")), startDist, builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
 
         holder.textViewPointName.setText(builder);

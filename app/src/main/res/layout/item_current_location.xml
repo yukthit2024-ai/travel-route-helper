@@ -6,7 +6,7 @@
     android:layout_margin="4dp"
     app:cardElevation="2dp"
     app:cardCornerRadius="8dp"
-    app:cardBackgroundColor="#E3F2FD">
+    app:cardBackgroundColor="@color/primary_light">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -19,7 +19,7 @@
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:src="@drawable/ic_my_location"
-            app:tint="#1976D2" />
+            app:tint="@color/primary_dark" />
 
         <LinearLayout
             android:layout_width="0dp"
@@ -32,7 +32,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="I am here"
-                android:textColor="#1976D2"
+                android:textColor="@color/primary_dark"
                 android:textSize="16sp"
                 android:textStyle="bold" />
 
@@ -41,7 +41,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="On the way..."
-                android:textColor="#64B5F6"
+                android:textColor="@color/primary"
                 android:textSize="12sp" />
 
         </LinearLayout>
