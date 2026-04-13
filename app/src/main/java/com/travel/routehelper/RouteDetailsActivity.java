@@ -1,14 +1,24 @@
 package com.travel.routehelper;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.location.Location;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Toast;
-import java.util.ArrayList;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.Priority;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.travel.routehelper.adapters.PointAdapter;
 import com.travel.routehelper.models.Point;
@@ -16,6 +26,7 @@ import com.travel.routehelper.models.Route;
 import com.travel.routehelper.utils.FileUtils;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class RouteDetailsActivity extends AppCompatActivity implements PointAdapter.OnPointClickListener {
 
@@ -23,6 +34,8 @@ public class RouteDetailsActivity extends AppCompatActivity implements PointAdap
     private Route currentRoute;
     private PointAdapter adapter;
     private RecyclerView recyclerView;
+    private FusedLocationProviderClient fusedLocationClient;
+    private LocationCallback locationCallback;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,6 +61,16 @@ public class RouteDetailsActivity extends AppCompatActivity implements PointAdap
             intent.putExtra("FILE_PATH", filePath);
             startActivity(intent);
         });
+
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        locationCallback = new LocationCallback() {
+            @Override
+            public void onLocationResult(@NonNull LocationResult locationResult) {
+                if (adapter != null && locationResult.getLastLocation() != null) {
+                    adapter.updateCurrentLocation(locationResult.getLastLocation());
+                }
+            }
+        };
 
         loadRouteData();
     }
@@ -86,5 +109,26 @@ public class RouteDetailsActivity extends AppCompatActivity implements PointAdap
     protected void onResume() {
         super.onResume();
         loadRouteData();
+        startLocationUpdates();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        stopLocationUpdates();
+    }
+
+    private void startLocationUpdates() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        LocationRequest locationRequest = new LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 10000)
+                .setMinUpdateIntervalMillis(5000)
+                .build();
+        fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null);
+    }
+
+    private void stopLocationUpdates() {
+        fusedLocationClient.removeLocationUpdates(locationCallback);
     }
 }

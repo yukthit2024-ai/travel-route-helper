@@ -10,11 +10,13 @@ import com.travel.routehelper.R;
 import com.travel.routehelper.models.Point;
 import java.util.List;
 import android.text.TextUtils;
+import android.location.Location;
 
 public class PointAdapter extends RecyclerView.Adapter<PointAdapter.PointViewHolder> {
 
     private List<Point> points;
     private OnPointClickListener listener;
+    private Location currentLocation;
 
     public interface OnPointClickListener {
         void onPointClick(int position);
@@ -23,6 +25,11 @@ public class PointAdapter extends RecyclerView.Adapter<PointAdapter.PointViewHol
     public PointAdapter(List<Point> points, OnPointClickListener listener) {
         this.points = points;
         this.listener = listener;
+    }
+
+    public void updateCurrentLocation(Location location) {
+        this.currentLocation = location;
+        notifyDataSetChanged();
     }
 
     @NonNull
@@ -39,6 +46,24 @@ public class PointAdapter extends RecyclerView.Adapter<PointAdapter.PointViewHol
         holder.textViewPointLocation.setText(String.format("Lat: %.6f, Lng: %.6f", point.getLatitude(), point.getLongitude()));
         holder.textViewPointTimestamp.setText(point.getTimestamp());
         
+        if (currentLocation != null) {
+            float[] results = new float[1];
+            Location.distanceBetween(currentLocation.getLatitude(), currentLocation.getLongitude(),
+                    point.getLatitude(), point.getLongitude(), results);
+            float distanceInMeters = results[0];
+            
+            String distanceStr;
+            if (distanceInMeters < 1000) {
+                distanceStr = String.format("%.0f m away", distanceInMeters);
+            } else {
+                distanceStr = String.format("%.1f km away", distanceInMeters / 1000f);
+            }
+            holder.textViewPointDistance.setVisibility(View.VISIBLE);
+            holder.textViewPointDistance.setText(distanceStr);
+        } else {
+            holder.textViewPointDistance.setVisibility(View.GONE);
+        }
+
         List<String> types = point.getTypes();
         if (types != null && !types.isEmpty()) {
             holder.textViewPointTypes.setVisibility(View.VISIBLE);
@@ -65,7 +90,7 @@ public class PointAdapter extends RecyclerView.Adapter<PointAdapter.PointViewHol
     }
 
     static class PointViewHolder extends RecyclerView.ViewHolder {
-        TextView textViewPointName, textViewPointLocation, textViewPointTimestamp, textViewPointTypes;
+        TextView textViewPointName, textViewPointLocation, textViewPointTimestamp, textViewPointTypes, textViewPointDistance;
 
         PointViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -73,6 +98,7 @@ public class PointAdapter extends RecyclerView.Adapter<PointAdapter.PointViewHol
             textViewPointLocation = itemView.findViewById(R.id.textViewPointLocation);
             textViewPointTimestamp = itemView.findViewById(R.id.textViewPointTimestamp);
             textViewPointTypes = itemView.findViewById(R.id.textViewPointTypes);
+            textViewPointDistance = itemView.findViewById(R.id.textViewPointDistance);
         }
     }
 }
