@@ -131,8 +131,9 @@ public class RouteDetailsActivity extends AppCompatActivity implements PointAdap
             }
         });
 
-        LocationRequest locationRequest = new LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 60000)
-                .setMinUpdateIntervalMillis(30000)
+        int intervalMs = new com.travel.routehelper.utils.SettingsManager(this).getGpsRefreshInterval();
+        LocationRequest locationRequest = new LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, intervalMs)
+                .setMinUpdateIntervalMillis(intervalMs / 2)
                 .build();
         fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null);
     }

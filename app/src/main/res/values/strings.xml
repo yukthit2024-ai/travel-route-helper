@@ -4,4 +4,26 @@
     <string name="title_add_point">Add Point</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <!-- Settings -->
+    <string name="title_settings">Settings</string>
+    <string name="label_gps_interval">GPS Refresh Interval</string>
+    <string name="summary_gps_interval">Higher frequency uses more battery but provides more accurate tracking.</string>
+    <string name="settings_saved">Settings saved</string>
+
+    <string-array name="gps_interval_labels">
+        <item>10 seconds</item>
+        <item>30 seconds</item>
+        <item>1 minute</item>
+        <item>2 minutes</item>
+        <item>5 minutes</item>
+    </string-array>
+
+    <string-array name="gps_interval_values">
+        <item>10000</item>
+        <item>30000</item>
+        <item>60000</item>
+        <item>120000</item>
+        <item>300000</item>
+    </string-array>
 </resources>

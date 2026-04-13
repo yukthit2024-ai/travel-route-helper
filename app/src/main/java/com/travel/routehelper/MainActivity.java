@@ -71,7 +71,7 @@ public class MainActivity extends AppCompatActivity implements RouteAdapter.OnRo
         navigationView.setNavigationItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.nav_settings) {
-                Toast.makeText(this, "Settings coming soon!", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(this, SettingsActivity.class));
             } else if (id == R.id.nav_help) {
                 Toast.makeText(this, "Help center coming soon!", Toast.LENGTH_SHORT).show();
             } else if (id == R.id.nav_about) {
