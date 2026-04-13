@@ -31,7 +31,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements RouteAdapter.OnRouteClickListener {
+public class MainActivity extends AppCompatActivity implements RouteAdapter.OnRouteClickListener, RouteAdapter.OnRouteLongClickListener {
 
     private static final int PERMISSION_REQUEST_STORAGE = 2001;
     private static final int PERMISSION_REQUEST_MANAGE_STORAGE = 2002;
@@ -130,7 +130,7 @@ public class MainActivity extends AppCompatActivity implements RouteAdapter.OnRo
         }
 
         if (adapter == null) {
-            adapter = new RouteAdapter(routeFiles, this);
+            adapter = new RouteAdapter(routeFiles, this, this);
             recyclerView.setAdapter(adapter);
         } else {
             adapter.updateData(routeFiles);
@@ -167,6 +167,76 @@ public class MainActivity extends AppCompatActivity implements RouteAdapter.OnRo
             Toast.makeText(this, "Route created", Toast.LENGTH_SHORT).show();
         } catch (IOException e) {
             Toast.makeText(this, "Failed to create route: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
+    }
+
+    @Override
+    public void onRouteLongClick(File file) {
+        String currentName = file.getName().replace(".json", "");
+        showEditRouteDialog(file, currentName);
+    }
+
+    private void showEditRouteDialog(File routeFile, String currentName) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Rename Route");
+
+        final EditText input = new EditText(this);
+        input.setText(currentName);
+        input.setInputType(InputType.TYPE_CLASS_TEXT);
+        builder.setView(input);
+
+        builder.setPositiveButton("Rename", (dialog, which) -> {
+            String newName = input.getText().toString().trim();
+            if (!newName.isEmpty() && !newName.equals(currentName)) {
+                renameRoute(routeFile, newName);
+            } else if (newName.isEmpty()) {
+                Toast.makeText(MainActivity.this, "Name cannot be empty", Toast.LENGTH_SHORT).show();
+            }
+        });
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
+
+        builder.show();
+    }
+
+    private void renameRoute(File oldJsonFile, String newName) {
+        try {
+            File oldFolder = oldJsonFile.getParentFile();
+            File routesDir = FileUtils.getRoutesDirectory();
+            File newFolder = new File(routesDir, newName);
+
+            if (newFolder.exists()) {
+                Toast.makeText(this, "A route with this name already exists", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // 1. Rename the folder
+            if (oldFolder.renameTo(newFolder)) {
+                // 2. Rename the JSON file inside the new folder
+                File renamedJsonFile = new File(newFolder, newName + ".json");
+                File movedJsonFile = new File(newFolder, oldJsonFile.getName());
+                
+                if (movedJsonFile.renameTo(renamedJsonFile)) {
+                    // 3. Update the routeName inside the JSON
+                    Route route = FileUtils.loadRoute(renamedJsonFile);
+                    // We need a setter or a way to change the name
+                    // Since Route has private fields and no setter, I'll create a new one or use reflection.
+                    // Better: recreate the route object with same points.
+                    Route updatedRoute = new Route(newName, route.getCreatedAt());
+                    for (com.travel.routehelper.models.Point p : route.getPoints()) {
+                        updatedRoute.addPoint(p);
+                    }
+                    FileUtils.saveRoute(this, updatedRoute);
+                    
+                    loadRoutes();
+                    Toast.makeText(this, "Route renamed", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(this, "Failed to rename data file", Toast.LENGTH_SHORT).show();
+                }
+            } else {
+                Toast.makeText(this, "Failed to rename folder", Toast.LENGTH_SHORT).show();
+            }
+        } catch (Exception e) {
+            Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
 

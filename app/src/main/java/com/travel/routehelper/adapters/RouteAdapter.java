@@ -14,14 +14,20 @@ public class RouteAdapter extends RecyclerView.Adapter<RouteAdapter.RouteViewHol
 
     private List<File> routeFiles;
     private OnRouteClickListener listener;
+    private OnRouteLongClickListener longClickListener;
 
     public interface OnRouteClickListener {
         void onRouteClick(File file);
     }
 
-    public RouteAdapter(List<File> routeFiles, OnRouteClickListener listener) {
+    public interface OnRouteLongClickListener {
+        void onRouteLongClick(File file);
+    }
+
+    public RouteAdapter(List<File> routeFiles, OnRouteClickListener listener, OnRouteLongClickListener longClickListener) {
         this.routeFiles = routeFiles;
         this.listener = listener;
+        this.longClickListener = longClickListener;
     }
 
     @NonNull
@@ -38,6 +44,13 @@ public class RouteAdapter extends RecyclerView.Adapter<RouteAdapter.RouteViewHol
         holder.textViewRouteName.setText(name);
         holder.textViewRouteInfo.setText("File: " + file.getName());
         holder.itemView.setOnClickListener(v -> listener.onRouteClick(file));
+        holder.itemView.setOnLongClickListener(v -> {
+            if (longClickListener != null) {
+                longClickListener.onRouteLongClick(file);
+                return true;
+            }
+            return false;
+        });
     }
 
     @Override
