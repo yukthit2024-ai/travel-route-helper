@@ -69,7 +69,7 @@ jobs:
       - name: Job summary
         if: success()
         run: |
-          echo "## ✅ Build Succeeded" >> $GITHUB_STEP_SUMMARY
+          echo "## Build Succeeded" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Item | Value |" >> $GITHUB_STEP_SUMMARY
           echo "|------|-------|" >> $GITHUB_STEP_SUMMARY
