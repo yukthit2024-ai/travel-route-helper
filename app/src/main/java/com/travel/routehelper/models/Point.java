@@ -10,6 +10,9 @@ public class Point {
     private String timestamp;
     private List<String> types;
 
+    private double currentDistance = -1;
+    private double previousDistance = -1;
+
     public Point(String name, double latitude, double longitude, String timestamp, List<String> types) {
         this.name = name;
         this.latitude = latitude;
@@ -26,4 +29,9 @@ public class Point {
         if (types == null) types = new ArrayList<>();
         return types;
     }
+
+    public double getCurrentDistance() { return currentDistance; }
+    public void setCurrentDistance(double currentDistance) { this.currentDistance = currentDistance; }
+    public double getPreviousDistance() { return previousDistance; }
+    public void setPreviousDistance(double previousDistance) { this.previousDistance = previousDistance; }
 }
