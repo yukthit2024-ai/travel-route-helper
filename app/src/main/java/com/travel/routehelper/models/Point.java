@@ -10,8 +10,6 @@ public class Point {
     private String timestamp;
     private List<String> types;
 
-    private double currentDistance = -1;
-    private double previousDistance = -1;
     private boolean deleted = false;
 
     public Point(String name, double latitude, double longitude, String timestamp, List<String> types) {
@@ -31,10 +29,6 @@ public class Point {
         return types;
     }
 
-    public double getCurrentDistance() { return currentDistance; }
-    public void setCurrentDistance(double currentDistance) { this.currentDistance = currentDistance; }
-    public double getPreviousDistance() { return previousDistance; }
-    public void setPreviousDistance(double previousDistance) { this.previousDistance = previousDistance; }
     public boolean isDeleted() { return deleted; }
     public void setDeleted(boolean deleted) { this.deleted = deleted; }
 }

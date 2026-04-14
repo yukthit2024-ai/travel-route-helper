@@ -25,10 +25,13 @@ public class PointAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
     private static final double JITTER_THRESHOLD_METERS = 5.0;
 
-    private List<Point> points;
+    private List<Point> points; // This is the displayed list
+    private List<com.travel.routehelper.models.PointWithDistance> currentDistances = new java.util.ArrayList<>();
+    private List<com.travel.routehelper.models.PointWithDistance> previousDistances = new java.util.ArrayList<>();
+    
     private OnPointClickListener listener;
     private Location currentLocation;
-    private int userRowPosition = 0; // Default to top
+    private int userRowPosition = 0;
 
     public interface OnPointClickListener {
         void onPointClick(int position);
@@ -46,21 +49,29 @@ public class PointAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
             return;
         }
 
+        // 1. Snapshot previous distances
+        previousDistances = new java.util.ArrayList<>(currentDistances);
+        
+        // 2. Calculate new current distances
+        currentDistances = new java.util.ArrayList<>();
+        for (Point p : points) {
+            float[] results = new float[1];
+            Location.distanceBetween(location.getLatitude(), location.getLongitude(),
+                    p.getLatitude(), p.getLongitude(), results);
+            currentDistances.add(new com.travel.routehelper.models.PointWithDistance(p, results[0]));
+        }
+
+        // 3. Categorize points based on movement (compare matching points by timestamp)
         java.util.List<Point> receding = new java.util.ArrayList<>();
         java.util.List<Point> approaching = new java.util.ArrayList<>();
         java.util.List<Point> neutral = new java.util.ArrayList<>();
 
         for (Point p : points) {
-            float[] results = new float[1];
-            Location.distanceBetween(location.getLatitude(), location.getLongitude(),
-                    p.getLatitude(), p.getLongitude(), results);
-            double newDist = results[0];
+            double currentDist = getDistanceForPoint(p, currentDistances);
+            double previousDist = getDistanceForPoint(p, previousDistances);
 
-            if (p.getCurrentDistance() != -1) {
-                p.setPreviousDistance(p.getCurrentDistance());
-                p.setCurrentDistance(newDist);
-
-                double diff = p.getCurrentDistance() - p.getPreviousDistance();
+            if (previousDist != -1 && currentDist != -1) {
+                double diff = currentDist - previousDist;
                 if (diff > JITTER_THRESHOLD_METERS) {
                     receding.add(p);
                 } else if (diff < -JITTER_THRESHOLD_METERS) {
@@ -69,15 +80,13 @@ public class PointAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
                     neutral.add(p);
                 }
             } else {
-                p.setCurrentDistance(newDist);
                 neutral.add(p);
             }
         }
 
-        // Reassemble list: Receding (Red) at top, Neutral, then Approaching (Green) at bottom
+        // 4. Re-order the display list: Receding -> Marker -> Approaching
         java.util.List<Point> newOrder = new java.util.ArrayList<>();
         newOrder.addAll(receding);
-        // Neutral points are treated as receding for top-positioning or just kept after receding
         newOrder.addAll(neutral);
         
         this.userRowPosition = newOrder.size();
@@ -85,6 +94,15 @@ public class PointAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
         this.points = newOrder;
         notifyDataSetChanged();
+    }
+
+    private double getDistanceForPoint(Point p, List<com.travel.routehelper.models.PointWithDistance> list) {
+        for (com.travel.routehelper.models.PointWithDistance pwd : list) {
+            if (pwd.getTimestamp().equals(p.getTimestamp())) {
+                return pwd.getDistance();
+            }
+        }
+        return -1;
     }
 
     public void setUserRowPosition(int position) {
@@ -116,7 +134,6 @@ public class PointAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         if (holder instanceof CurrentLocationViewHolder) {
             bindCurrentLocation((CurrentLocationViewHolder) holder);
         } else if (holder instanceof PointViewHolder) {
-            // Adjust position for the points list
             int pointIndex = (position > userRowPosition) ? position - 1 : position;
             bindPoint((PointViewHolder) holder, pointIndex);
         }
@@ -135,33 +152,32 @@ public class PointAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         Point point = points.get(position);
         SpannableStringBuilder builder = new SpannableStringBuilder();
         
-        // 1. Add Point Name (Bold)
         int startName = builder.length();
         builder.append(point.getName());
         builder.setSpan(new StyleSpan(Typeface.BOLD), startName, builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
 
-        // 2. Add Distance
-        if (point.getCurrentDistance() != -1) {
-            double distanceInMeters = point.getCurrentDistance();
+        double currentDist = getDistanceForPoint(point, currentDistances);
+        double previousDist = getDistanceForPoint(point, previousDistances);
+
+        if (currentDist != -1) {
             String distanceStr;
-            if (distanceInMeters < 1000) {
-                distanceStr = String.format(" (%.0f m)", distanceInMeters);
+            if (currentDist < 1000) {
+                distanceStr = String.format(" (%.0f m)", currentDist);
             } else {
-                distanceStr = String.format(" (%.1f km)", distanceInMeters / 1000f);
+                distanceStr = String.format(" (%.1f km)", currentDist / 1000f);
             }
             
             int startDist = builder.length();
             builder.append(distanceStr);
             builder.setSpan(new StyleSpan(Typeface.BOLD), startDist, builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             
-            // Apply color based on movement
-            int color = Color.parseColor("#4EC3D0"); // Default theme turquoise
-            if (point.getPreviousDistance() != -1) {
-                double diff = point.getCurrentDistance() - point.getPreviousDistance();
+            int color = Color.parseColor("#4EC3D0"); // Turquoise
+            if (previousDist != -1) {
+                double diff = currentDist - previousDist;
                 if (diff > JITTER_THRESHOLD_METERS) {
-                    color = Color.parseColor("#E57373"); // Reddish (Receding)
+                    color = Color.parseColor("#E57373"); // Red
                 } else if (diff < -JITTER_THRESHOLD_METERS) {
-                    color = Color.parseColor("#81C784"); // Greenish (Approaching)
+                    color = Color.parseColor("#81C784"); // Green
                 }
             }
             builder.setSpan(new ForegroundColorSpan(color), startDist, builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -191,8 +207,8 @@ public class PointAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
     public void updateData(List<Point> newPoints) {
         this.points = newPoints;
-        // Optionally reset distances if new list is radically different, 
-        // but often we just want to refresh.
+        currentDistances.clear();
+        previousDistances.clear();
         notifyDataSetChanged();
     }
 
