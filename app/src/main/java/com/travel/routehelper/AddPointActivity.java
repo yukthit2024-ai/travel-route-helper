@@ -21,6 +21,7 @@ import com.travel.routehelper.models.Route;
 import com.travel.routehelper.utils.DateUtils;
 import com.travel.routehelper.utils.FileUtils;
 import android.widget.CheckBox;
+import android.view.View;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -37,10 +38,10 @@ public class AddPointActivity extends AppCompatActivity {
     private double currentLat = 0;
     private double currentLng = 0;
     
-    private com.google.android.material.textfield.TextInputEditText editTextPointName;
-    private android.widget.TextView textViewLocation;
-    private android.widget.CheckBox checkboxPetrol, checkboxFood, checkboxToll, checkboxToilet;
-    private com.google.android.gms.tasks.CancellationTokenSource cancellationTokenSource;
+    private TextInputEditText editTextPointName;
+    private TextView textViewLocation;
+    private CheckBox checkboxPetrol, checkboxFood, checkboxToll, checkboxToilet;
+    private CancellationTokenSource cancellationTokenSource;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
