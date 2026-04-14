@@ -26,4 +26,11 @@
         <item>120000</item>
         <item>300000</item>
     </string-array>
+
+    <!-- Delete Point -->
+    <string name="confirm_delete_title">Delete Point?</string>
+    <string name="confirm_delete_msg">Are you sure you want to remove this point from the route?</string>
+    <string name="btn_delete">Delete</string>
+    <string name="btn_cancel">Cancel</string>
+    <string name="point_deleted">Point deleted</string>
 </resources>

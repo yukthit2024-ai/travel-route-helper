@@ -31,15 +31,16 @@ public class AddPointActivity extends AppCompatActivity {
     private static final int PERMISSION_REQUEST_LOCATION = 1001;
     
     private String filePath;
-    private int pointIndex = -1;
+    private String pointTimestamp = null;
+    private MaterialButton buttonDelete;
     private FusedLocationProviderClient fusedLocationClient;
     private double currentLat = 0;
     private double currentLng = 0;
     
-    private TextInputEditText editTextPointName;
-    private TextView textViewLocation;
-    private CheckBox checkboxPetrol, checkboxFood, checkboxToll, checkboxToilet;
-    private CancellationTokenSource cancellationTokenSource;
+    private com.google.android.material.textfield.TextInputEditText editTextPointName;
+    private android.widget.TextView textViewLocation;
+    private android.widget.CheckBox checkboxPetrol, checkboxFood, checkboxToll, checkboxToilet;
+    private com.google.android.gms.tasks.CancellationTokenSource cancellationTokenSource;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,11 +65,12 @@ public class AddPointActivity extends AppCompatActivity {
         checkboxToilet = findViewById(R.id.checkboxToilet);
         MaterialButton buttonSave = findViewById(R.id.buttonSave);
         MaterialButton buttonRefresh = findViewById(R.id.buttonRefreshLocation);
+        buttonDelete = findViewById(R.id.buttonDelete);
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
-        pointIndex = getIntent().getIntExtra("POINT_INDEX", -1);
-        if (pointIndex != -1) {
+        pointTimestamp = getIntent().getStringExtra("POINT_TIMESTAMP");
+        if (pointTimestamp != null) {
             getSupportActionBar().setTitle("Edit Point");
             String name = getIntent().getStringExtra("POINT_NAME");
             currentLat = getIntent().getDoubleExtra("POINT_LAT", 0);
@@ -87,6 +89,9 @@ public class AddPointActivity extends AppCompatActivity {
             
             buttonRefresh.setEnabled(false);
             buttonRefresh.setAlpha(0.5f);
+            
+            buttonDelete.setVisibility(View.VISIBLE);
+            buttonDelete.setOnClickListener(v -> confirmDeletePoint());
         } else {
             requestLocation();
         }
@@ -106,7 +111,7 @@ public class AddPointActivity extends AppCompatActivity {
         if (cancellationTokenSource != null) {
             cancellationTokenSource.cancel();
         }
-        cancellationTokenSource = new CancellationTokenSource();
+        cancellationTokenSource = new com.google.android.gms.tasks.CancellationTokenSource();
 
         fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, cancellationTokenSource.getToken())
             .addOnSuccessListener(this, location -> {
@@ -121,6 +126,35 @@ public class AddPointActivity extends AppCompatActivity {
             .addOnFailureListener(e -> {
                 textViewLocation.setText("Failed to get location: " + e.getMessage());
             });
+    }
+
+    private void confirmDeletePoint() {
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle(R.string.confirm_delete_title)
+            .setMessage(R.string.confirm_delete_msg)
+            .setPositiveButton(R.string.btn_delete, (dialog, which) -> deletePoint())
+            .setNegativeButton(R.string.btn_cancel, null)
+            .show();
+    }
+
+    private void deletePoint() {
+        try {
+            File file = new File(filePath);
+            Route route = FileUtils.loadRoute(file);
+            
+            for (Point p : route.getPoints()) {
+                if (p.getTimestamp().equals(pointTimestamp)) {
+                    p.setDeleted(true);
+                    break;
+                }
+            }
+            
+            FileUtils.saveRoute(this, route);
+            Toast.makeText(this, R.string.point_deleted, Toast.LENGTH_SHORT).show();
+            finish();
+        } catch (IOException e) {
+            Toast.makeText(this, "Failed to delete point: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
     }
 
     private void savePoint() {
@@ -145,11 +179,23 @@ public class AddPointActivity extends AppCompatActivity {
             File file = new File(filePath);
             Route route = FileUtils.loadRoute(file);
             
-            if (pointIndex != -1) {
-                // Edit Mode: replace the point at pointIndex
-                Point oldPoint = route.getPoints().get(pointIndex);
-                Point updatedPoint = new Point(name, oldPoint.getLatitude(), oldPoint.getLongitude(), oldPoint.getTimestamp(), selectedTypes);
-                route.getPoints().set(pointIndex, updatedPoint);
+            if (pointTimestamp != null) {
+                // Edit Mode: find point by timestamp
+                for (Point p : route.getPoints()) {
+                    if (p.getTimestamp().equals(pointTimestamp)) {
+                        // Update fields
+                        // Note: We create a new Point object or update existing one.
+                        // Point model doesn't have setters for all fields currently, so let's check.
+                        // Actually, name, lat, lng are final-ish (private).
+                        // I'll replace it in the list if necessary, or better, add setters to Point.
+                        // For now, I'll find its index and replace it.
+                        int index = route.getPoints().indexOf(p);
+                        Point updatedPoint = new Point(name, p.getLatitude(), p.getLongitude(), p.getTimestamp(), selectedTypes);
+                        updatedPoint.setDeleted(false); // Ensure it's not deleted if we're saving it
+                        route.getPoints().set(index, updatedPoint);
+                        break;
+                    }
+                }
             } else {
                 // Add Mode
                 Point newPoint = new Point(name, currentLat, currentLng, DateUtils.getCurrentTimestampISO(), selectedTypes);
@@ -158,7 +204,7 @@ public class AddPointActivity extends AppCompatActivity {
             
             FileUtils.saveRoute(this, route);
             
-            Toast.makeText(this, pointIndex != -1 ? "Point updated" : "Point saved", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, pointTimestamp != null ? "Point updated" : "Point saved", Toast.LENGTH_SHORT).show();
             finish();
         } catch (IOException e) {
             Toast.makeText(this, "Failed to save point: " + e.getMessage(), Toast.LENGTH_LONG).show();

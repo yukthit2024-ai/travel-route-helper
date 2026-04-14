@@ -76,16 +76,25 @@ public class RouteDetailsActivity extends AppCompatActivity implements PointAdap
         loadRouteData();
     }
 
+    private List<Point> displayedPoints = new ArrayList<>();
+
     private void loadRouteData() {
         try {
             currentRoute = FileUtils.loadRoute(new File(filePath));
             getSupportActionBar().setTitle(currentRoute.getRouteName());
             
+            displayedPoints.clear();
+            for (Point p : currentRoute.getPoints()) {
+                if (!p.isDeleted()) {
+                    displayedPoints.add(p);
+                }
+            }
+
             if (adapter == null) {
-                adapter = new PointAdapter(currentRoute.getPoints(), this);
+                adapter = new PointAdapter(displayedPoints, this);
                 recyclerView.setAdapter(adapter);
             } else {
-                adapter.updateData(currentRoute.getPoints());
+                adapter.updateData(displayedPoints);
             }
         } catch (IOException e) {
             Toast.makeText(this, "Failed to load route: " + e.getMessage(), Toast.LENGTH_LONG).show();
@@ -95,10 +104,11 @@ public class RouteDetailsActivity extends AppCompatActivity implements PointAdap
 
     @Override
     public void onPointClick(int position) {
-        Point point = currentRoute.getPoints().get(position);
+        // Find the point in displayedPoints
+        Point point = displayedPoints.get(position);
         Intent intent = new Intent(this, AddPointActivity.class);
         intent.putExtra("FILE_PATH", filePath);
-        intent.putExtra("POINT_INDEX", position);
+        intent.putExtra("POINT_TIMESTAMP", point.getTimestamp());
         intent.putExtra("POINT_NAME", point.getName());
         intent.putExtra("POINT_LAT", point.getLatitude());
         intent.putExtra("POINT_LNG", point.getLongitude());
