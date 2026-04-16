@@ -1,4 +1,4 @@
-package com.travel.routehelper;
+package com.vypeensoft.routehelper;
 
 import android.os.Bundle;
 import android.view.View;
@@ -8,7 +8,7 @@ import android.widget.Spinner;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import com.travel.routehelper.utils.SettingsManager;
+import com.vypeensoft.routehelper.utils.SettingsManager;
 
 public class SettingsActivity extends AppCompatActivity {
 

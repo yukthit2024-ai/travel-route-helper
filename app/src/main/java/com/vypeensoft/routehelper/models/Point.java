@@ -1,4 +1,4 @@
-package com.travel.routehelper.models;
+package com.vypeensoft.routehelper.models;
 
 import java.util.ArrayList;
 import java.util.List;

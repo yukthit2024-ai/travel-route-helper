@@ -1,4 +1,4 @@
-package com.travel.routehelper;
+package com.vypeensoft.routehelper;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
@@ -16,10 +16,10 @@ import com.google.android.gms.location.Priority;
 import com.google.android.gms.tasks.CancellationTokenSource;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
-import com.travel.routehelper.models.Point;
-import com.travel.routehelper.models.Route;
-import com.travel.routehelper.utils.DateUtils;
-import com.travel.routehelper.utils.FileUtils;
+import com.vypeensoft.routehelper.models.Point;
+import com.vypeensoft.routehelper.models.Route;
+import com.vypeensoft.routehelper.utils.DateUtils;
+import com.vypeensoft.routehelper.utils.FileUtils;
 import android.widget.CheckBox;
 import android.view.View;
 import java.io.File;

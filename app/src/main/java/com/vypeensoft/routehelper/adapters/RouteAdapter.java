@@ -1,4 +1,4 @@
-package com.travel.routehelper.adapters;
+package com.vypeensoft.routehelper.adapters;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -6,7 +6,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-import com.travel.routehelper.R;
+import com.vypeensoft.routehelper.R;
 import java.io.File;
 import java.util.List;
 

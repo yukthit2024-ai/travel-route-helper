@@ -1,4 +1,4 @@
-package com.travel.routehelper.models;
+package com.vypeensoft.routehelper.models;
 
 public class PointWithDistance {
     private final Point point;

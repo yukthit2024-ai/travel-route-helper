@@ -1,4 +1,4 @@
-package com.travel.routehelper;
+package com.vypeensoft.routehelper;
 
 import android.Manifest;
 import android.content.DialogInterface;
@@ -23,10 +23,10 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.travel.routehelper.adapters.RouteAdapter;
-import com.travel.routehelper.models.Route;
-import com.travel.routehelper.utils.DateUtils;
-import com.travel.routehelper.utils.FileUtils;
+import com.vypeensoft.routehelper.adapters.RouteAdapter;
+import com.vypeensoft.routehelper.models.Route;
+import com.vypeensoft.routehelper.utils.DateUtils;
+import com.vypeensoft.routehelper.utils.FileUtils;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -296,7 +296,7 @@ public class MainActivity extends AppCompatActivity implements RouteAdapter.OnRo
                     // Since Route has private fields and no setter, I'll create a new one or use reflection.
                     // Better: recreate the route object with same points.
                     Route updatedRoute = new Route(newName, route.getCreatedAt());
-                    for (com.travel.routehelper.models.Point p : route.getPoints()) {
+                    for (com.vypeensoft.routehelper.models.Point p : route.getPoints()) {
                         updatedRoute.addPoint(p);
                     }
                     FileUtils.saveRoute(this, updatedRoute);

@@ -3,11 +3,11 @@ plugins {
 }
 
 android {
-    namespace 'com.travel.routehelper'
+    namespace 'com.vypeensoft.routehelper'
     compileSdk 34
 
     defaultConfig {
-        applicationId "com.travel.routehelper"
+        applicationId "com.vypeensoft.routehelper"
         minSdk 24
         targetSdk 34
         versionCode 1

@@ -1,4 +1,4 @@
-package com.travel.routehelper.utils;
+package com.vypeensoft.routehelper.utils;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;

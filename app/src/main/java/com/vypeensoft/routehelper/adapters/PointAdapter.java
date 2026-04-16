@@ -1,4 +1,4 @@
-package com.travel.routehelper.adapters;
+package com.vypeensoft.routehelper.adapters;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -6,8 +6,8 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-import com.travel.routehelper.R;
-import com.travel.routehelper.models.Point;
+import com.vypeensoft.routehelper.R;
+import com.vypeensoft.routehelper.models.Point;
 import java.util.List;
 import android.text.TextUtils;
 import android.location.Location;
@@ -26,8 +26,8 @@ public class PointAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     private static final double JITTER_THRESHOLD_METERS = 5.0;
 
     private List<Point> points; // This is the displayed list
-    private List<com.travel.routehelper.models.PointWithDistance> currentDistances = new java.util.ArrayList<>();
-    private List<com.travel.routehelper.models.PointWithDistance> previousDistances = new java.util.ArrayList<>();
+    private List<com.vypeensoft.routehelper.models.PointWithDistance> currentDistances = new java.util.ArrayList<>();
+    private List<com.vypeensoft.routehelper.models.PointWithDistance> previousDistances = new java.util.ArrayList<>();
     
     private OnPointClickListener listener;
     private Location currentLocation;
@@ -58,7 +58,7 @@ public class PointAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
             float[] results = new float[1];
             Location.distanceBetween(location.getLatitude(), location.getLongitude(),
                     p.getLatitude(), p.getLongitude(), results);
-            currentDistances.add(new com.travel.routehelper.models.PointWithDistance(p, results[0]));
+            currentDistances.add(new com.vypeensoft.routehelper.models.PointWithDistance(p, results[0]));
         }
 
         // 3. Categorize points based on movement (compare matching points by timestamp)
@@ -96,8 +96,8 @@ public class PointAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         notifyDataSetChanged();
     }
 
-    private double getDistanceForPoint(Point p, List<com.travel.routehelper.models.PointWithDistance> list) {
-        for (com.travel.routehelper.models.PointWithDistance pwd : list) {
+    private double getDistanceForPoint(Point p, List<com.vypeensoft.routehelper.models.PointWithDistance> list) {
+        for (com.vypeensoft.routehelper.models.PointWithDistance pwd : list) {
             if (pwd.getTimestamp().equals(p.getTimestamp())) {
                 return pwd.getDistance();
             }

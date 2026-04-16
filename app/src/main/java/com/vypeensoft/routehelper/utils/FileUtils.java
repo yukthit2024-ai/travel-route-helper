@@ -1,9 +1,9 @@
-package com.travel.routehelper.utils;
+package com.vypeensoft.routehelper.utils;
 
 import android.content.Context;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.travel.routehelper.models.Route;
+import com.vypeensoft.routehelper.models.Route;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;

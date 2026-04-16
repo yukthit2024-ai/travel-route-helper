@@ -1,4 +1,4 @@
-package com.travel.routehelper;
+package com.vypeensoft.routehelper;
 
 import android.Manifest;
 import android.content.Intent;
@@ -20,10 +20,10 @@ import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.Priority;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.travel.routehelper.adapters.PointAdapter;
-import com.travel.routehelper.models.Point;
-import com.travel.routehelper.models.Route;
-import com.travel.routehelper.utils.FileUtils;
+import com.vypeensoft.routehelper.adapters.PointAdapter;
+import com.vypeensoft.routehelper.models.Point;
+import com.vypeensoft.routehelper.models.Route;
+import com.vypeensoft.routehelper.utils.FileUtils;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -141,7 +141,7 @@ public class RouteDetailsActivity extends AppCompatActivity implements PointAdap
             }
         });
 
-        int intervalMs = new com.travel.routehelper.utils.SettingsManager(this).getGpsRefreshInterval();
+        int intervalMs = new com.vypeensoft.routehelper.utils.SettingsManager(this).getGpsRefreshInterval();
         LocationRequest locationRequest = new LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, intervalMs)
                 .setMinUpdateIntervalMillis(intervalMs / 2)
                 .build();
