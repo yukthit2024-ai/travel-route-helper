@@ -9,6 +9,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.vypeensoft.routehelper.R;
 import com.vypeensoft.routehelper.models.Point;
 import java.util.List;
+import java.util.Collections;
+import java.util.Comparator;
 import android.text.TextUtils;
 import android.location.Location;
 import android.text.SpannableStringBuilder;
@@ -85,6 +87,11 @@ public class PointAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         }
 
         // 4. Re-order the display list: Receding -> Marker -> Approaching
+        // Sort receding by distance descending (furthest first)
+        Collections.sort(receding, (p1, p2) -> Double.compare(getDistanceForPoint(p2, currentDistances), getDistanceForPoint(p1, currentDistances)));
+        // Sort approaching by distance ascending (closest first)
+        Collections.sort(approaching, (p1, p2) -> Double.compare(getDistanceForPoint(p1, currentDistances), getDistanceForPoint(p2, currentDistances)));
+
         java.util.List<Point> newOrder = new java.util.ArrayList<>();
         newOrder.addAll(receding);
         newOrder.addAll(neutral);
