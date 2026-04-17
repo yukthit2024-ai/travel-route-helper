@@ -26,6 +26,7 @@ public class PointAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     private static final int TYPE_CURRENT_LOCATION = 1;
 
     private static final double JITTER_THRESHOLD_METERS = 5.0;
+    private static final double MIN_MOVEMENT_METERS = 2.0;
 
     private List<Point> points; // This is the displayed list
     private List<com.vypeensoft.routehelper.models.PointWithDistance> currentDistances = new java.util.ArrayList<>();
@@ -45,6 +46,13 @@ public class PointAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     }
 
     public void updateCurrentLocation(Location location) {
+        if (currentLocation != null && location != null) {
+            float distanceMoved = currentLocation.distanceTo(location);
+            if (distanceMoved < MIN_MOVEMENT_METERS) {
+                return;
+            }
+        }
+
         this.currentLocation = location;
         if (points == null || points.isEmpty()) {
             notifyDataSetChanged();
