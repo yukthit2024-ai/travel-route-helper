@@ -75,7 +75,7 @@ public class MainActivity extends AppCompatActivity implements RouteAdapter.OnRo
             } else if (id == R.id.nav_help) {
                 Toast.makeText(this, "Help center coming soon!", Toast.LENGTH_SHORT).show();
             } else if (id == R.id.nav_about) {
-                Toast.makeText(this, "Travel Route Helper v1.0", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(this, AboutActivity.class));
             }
             drawerLayout.closeDrawer(GravityCompat.START);
             return true;
