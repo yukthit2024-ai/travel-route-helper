@@ -32,7 +32,7 @@ public class AddPointActivity extends AppCompatActivity {
     private static final int PERMISSION_REQUEST_LOCATION = 1001;
     
     private String filePath;
-    private String pointTimestamp = null;
+    private String pointId = null;
     private MaterialButton buttonDelete;
     private FusedLocationProviderClient fusedLocationClient;
     private double currentLat = 0;
@@ -70,8 +70,8 @@ public class AddPointActivity extends AppCompatActivity {
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
-        pointTimestamp = getIntent().getStringExtra("POINT_TIMESTAMP");
-        if (pointTimestamp != null) {
+        pointId = getIntent().getStringExtra("POINT_ID");
+        if (pointId != null) {
             getSupportActionBar().setTitle("Edit Point");
             String name = getIntent().getStringExtra("POINT_NAME");
             currentLat = getIntent().getDoubleExtra("POINT_LAT", 0);
@@ -144,7 +144,7 @@ public class AddPointActivity extends AppCompatActivity {
             Route route = FileUtils.loadRoute(file);
             
             for (Point p : route.getPoints()) {
-                if (p.getTimestamp().equals(pointTimestamp)) {
+                if (p.getPointId().equals(pointId)) {
                     p.setDeleted(true);
                     break;
                 }
@@ -180,10 +180,10 @@ public class AddPointActivity extends AppCompatActivity {
             File file = new File(filePath);
             Route route = FileUtils.loadRoute(file);
             
-            if (pointTimestamp != null) {
-                // Edit Mode: find point by timestamp
+            if (pointId != null) {
+                // Edit Mode: find point by ID
                 for (Point p : route.getPoints()) {
-                    if (p.getTimestamp().equals(pointTimestamp)) {
+                    if (p.getPointId().equals(pointId)) {
                         // Update fields
                         // Note: We create a new Point object or update existing one.
                         // Point model doesn't have setters for all fields currently, so let's check.
@@ -191,7 +191,7 @@ public class AddPointActivity extends AppCompatActivity {
                         // I'll replace it in the list if necessary, or better, add setters to Point.
                         // For now, I'll find its index and replace it.
                         int index = route.getPoints().indexOf(p);
-                        Point updatedPoint = new Point(name, p.getLatitude(), p.getLongitude(), p.getTimestamp(), selectedTypes);
+                        Point updatedPoint = new Point(p.getPointId(), name, p.getLatitude(), p.getLongitude(), p.getTimestamp(), selectedTypes);
                         updatedPoint.setDeleted(false); // Ensure it's not deleted if we're saving it
                         route.getPoints().set(index, updatedPoint);
                         break;
@@ -205,7 +205,7 @@ public class AddPointActivity extends AppCompatActivity {
             
             FileUtils.saveRoute(this, route);
             
-            Toast.makeText(this, pointTimestamp != null ? "Point updated" : "Point saved", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, pointId != null ? "Point updated" : "Point saved", Toast.LENGTH_SHORT).show();
             finish();
         } catch (IOException e) {
             Toast.makeText(this, "Failed to save point: " + e.getMessage(), Toast.LENGTH_LONG).show();

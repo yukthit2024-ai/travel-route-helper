@@ -72,9 +72,9 @@ public class PointAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         }
 
         // 3. Categorize points based on movement (compare matching points by timestamp)
-        java.util.List<Point> receding = new java.util.ArrayList<>();
+        java.util.List<Point> receding    = new java.util.ArrayList<>();
         java.util.List<Point> approaching = new java.util.ArrayList<>();
-        java.util.List<Point> neutral = new java.util.ArrayList<>();
+        java.util.List<Point> neutral     = new java.util.ArrayList<>();
 
         for (Point p : points) {
             double currentDist = getDistanceForPoint(p, currentDistances);
@@ -113,7 +113,7 @@ public class PointAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
     private double getDistanceForPoint(Point p, List<com.vypeensoft.routehelper.models.PointWithDistance> list) {
         for (com.vypeensoft.routehelper.models.PointWithDistance pwd : list) {
-            if (pwd.getTimestamp().equals(p.getTimestamp())) {
+            if (pwd.getPointId().equals(p.getPointId())) {
                 return pwd.getDistance();
             }
         }

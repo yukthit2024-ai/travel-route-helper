@@ -1,5 +1,8 @@
 package com.vypeensoft.routehelper.models;
 
+/**
+ * I think this class holds a certain Point and the distance to that from the current location.
+ */
 public class PointWithDistance {
     private final Point point;
     private final double distance;
@@ -15,6 +18,10 @@ public class PointWithDistance {
 
     public double getDistance() {
         return distance;
+    }
+
+    public String getPointId() {
+        return point.getPointId();
     }
 
     public String getTimestamp() {

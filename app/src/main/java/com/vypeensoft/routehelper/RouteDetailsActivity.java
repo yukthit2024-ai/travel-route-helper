@@ -108,7 +108,7 @@ public class RouteDetailsActivity extends AppCompatActivity implements PointAdap
         Point point = displayedPoints.get(position);
         Intent intent = new Intent(this, AddPointActivity.class);
         intent.putExtra("FILE_PATH", filePath);
-        intent.putExtra("POINT_TIMESTAMP", point.getTimestamp());
+        intent.putExtra("POINT_ID", point.getPointId());
         intent.putExtra("POINT_NAME", point.getName());
         intent.putExtra("POINT_LAT", point.getLatitude());
         intent.putExtra("POINT_LNG", point.getLongitude());
