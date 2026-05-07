@@ -27,4 +27,12 @@ public class PointWithDistance {
     public String getTimestamp() {
         return point.getTimestamp();
     }
+
+    @Override
+    public String toString() {
+        return "PointWithDistance{" +
+                "point=" + point +
+                ", dist=" + String.format("%.2f", distance) +
+                '}';
+    }
 }

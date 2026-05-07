@@ -44,4 +44,14 @@ public class Point {
 
     public boolean isDeleted() { return deleted; }
     public void setDeleted(boolean deleted) { this.deleted = deleted; }
+
+    @Override
+    public String toString() {
+        return "Point{" +
+                "name='" + name + '\'' +
+                ", lat=" + latitude +
+                ", lon=" + longitude +
+                ", time='" + timestamp + '\'' +
+                '}';
+    }
 }

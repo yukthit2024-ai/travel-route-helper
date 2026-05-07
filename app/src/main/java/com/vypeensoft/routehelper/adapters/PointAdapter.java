@@ -8,7 +8,10 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.vypeensoft.routehelper.R;
 import com.vypeensoft.routehelper.models.Point;
+import com.vypeensoft.routehelper.models.PointWithDistance;
+import com.vypeensoft.routehelper.utils.*;
 import java.util.List;
+import java.util.Iterator;
 import java.util.Collections;
 import java.util.Comparator;
 import android.text.TextUtils;
@@ -28,9 +31,9 @@ public class PointAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     private static final double JITTER_THRESHOLD_METERS = 5.0;
     private static final double MIN_MOVEMENT_METERS = 2.0;
 
-    private List<Point> points; // This is the displayed list
-    private List<com.vypeensoft.routehelper.models.PointWithDistance> currentDistances = new java.util.ArrayList<>();
-    private List<com.vypeensoft.routehelper.models.PointWithDistance> previousDistances = new java.util.ArrayList<>();
+    private List<Point> pointsOnRoute; // This is the displayed list
+    private List<PointWithDistance> currentDistances = new java.util.ArrayList<>();
+    private List<PointWithDistance> previousDistances = new java.util.ArrayList<>();
     
     private OnPointClickListener listener;
     private Location currentLocation;
@@ -40,44 +43,51 @@ public class PointAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         void onPointClick(int position);
     }
 
-    public PointAdapter(List<Point> points, OnPointClickListener listener) {
-        this.points = points;
+    public PointAdapter(List<Point> pointsOnRoute, OnPointClickListener listener) {
+        this.pointsOnRoute = pointsOnRoute;
         this.listener = listener;
     }
 
-    public void updateCurrentLocation(Location location) {
-        if (currentLocation != null && location != null) {
-            float distanceMoved = currentLocation.distanceTo(location);
+    public void updateCurrentLocation(Location currLocation) {
+        if (currentLocation != null && currLocation != null) {
+            float distanceMoved = currentLocation.distanceTo(currLocation);
             if (distanceMoved < MIN_MOVEMENT_METERS) {
+                //System.out.println("-------------- small distance covered  --------------");
                 return;
             }
         }
 
-        this.currentLocation = location;
-        if (points == null || points.isEmpty()) {
+        this.currentLocation = currLocation;
+        if (pointsOnRoute == null || pointsOnRoute.isEmpty()) {
             notifyDataSetChanged();
+            System.out.println("return another reason");
             return;
         }
+        System.out.println("---------------------------- PointAdapter.updateCurrentLocation(Location currLocation) ----------------------------");
 
         // 1. Snapshot previous distances
         previousDistances = new java.util.ArrayList<>(currentDistances);
         
+        //LogUtil.printList(previousDistances, "PointAdapter.previousDistances");
         // 2. Calculate new current distances
         currentDistances = new java.util.ArrayList<>();
-        for (Point p : points) {
+        for (Point onePointOnRoute : pointsOnRoute) {
             float[] results = new float[1];
-            Location.distanceBetween(location.getLatitude(), location.getLongitude(),
-                    p.getLatitude(), p.getLongitude(), results);
-            currentDistances.add(new com.vypeensoft.routehelper.models.PointWithDistance(p, results[0]));
+            Location.distanceBetween(currLocation.getLatitude(), currLocation.getLongitude(), onePointOnRoute.getLatitude(), onePointOnRoute.getLongitude(), results);
+            currentDistances.add(new PointWithDistance(onePointOnRoute, results[0]));
         }
+        //LogUtil.printList(currentDistances, "PointAdapter.currentDistances");
 
-        // 3. Categorize points based on movement (compare matching points by timestamp)
+        // 3. Categorize pointsOnRoute based on movement (compare matching pointsOnRoute by timestamp)
         java.util.List<Point> receding    = new java.util.ArrayList<>();
         java.util.List<Point> approaching = new java.util.ArrayList<>();
         java.util.List<Point> neutral     = new java.util.ArrayList<>();
 
-        for (Point p : points) {
-            double currentDist = getDistanceForPoint(p, currentDistances);
+        Point currUserPoint = createCurrentUserPoint(currLocation.getLatitude(), currLocation.getLongitude());
+        addCurrentUserPoint(currUserPoint);
+
+        for (Point p : pointsOnRoute) {
+            double currentDist  = getDistanceForPoint(p, currentDistances);
             double previousDist = getDistanceForPoint(p, previousDistances);
 
             if (previousDist != -1 && currentDist != -1) {
@@ -87,12 +97,15 @@ public class PointAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
                 } else if (diff < -JITTER_THRESHOLD_METERS) {
                     approaching.add(p);
                 } else {
-                    neutral.add(p);
+                    //neutral.add(p);
+                    receding.add(p);  //treat no change as receding
                 }
             } else {
                 neutral.add(p);
             }
         }
+
+        //neutral.add(currUserPoint);
 
         // 4. Re-order the display list: Receding -> Marker -> Approaching
         // Sort receding by distance descending (furthest first)
@@ -106,13 +119,14 @@ public class PointAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         
         this.userRowPosition = newOrder.size();
         newOrder.addAll(approaching);
+        LogUtil.printList(newOrder, "PointAdapter.newOrder:"+newOrder.size());
 
-        this.points = newOrder;
+        this.pointsOnRoute = newOrder;
         notifyDataSetChanged();
     }
 
-    private double getDistanceForPoint(Point p, List<com.vypeensoft.routehelper.models.PointWithDistance> list) {
-        for (com.vypeensoft.routehelper.models.PointWithDistance pwd : list) {
+    private double getDistanceForPoint(Point p, List<PointWithDistance> list) {
+        for (PointWithDistance pwd : list) {
             if (pwd.getPointId().equals(p.getPointId())) {
                 return pwd.getDistance();
             }
@@ -121,7 +135,7 @@ public class PointAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     }
 
     public void setUserRowPosition(int position) {
-        if (points != null && position >= 0 && position <= points.size()) {
+        if (pointsOnRoute != null && position >= 0 && position <= pointsOnRoute.size()) {
             this.userRowPosition = position;
             notifyDataSetChanged();
         }
@@ -156,15 +170,15 @@ public class PointAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
     private void bindCurrentLocation(CurrentLocationViewHolder holder) {
         if (currentLocation != null) {
-            holder.textViewStatus.setText("Tracking - " + points.size() + " points");
+            holder.textViewStatus.setText("Tracking - " + pointsOnRoute.size() + " points on Route");
         } else {
             holder.textViewStatus.setText("Waiting for GPS...");
         }
     }
 
     private void bindPoint(PointViewHolder holder, int position) {
-        if (points == null || position < 0 || position >= points.size()) return;
-        Point point = points.get(position);
+        if (pointsOnRoute == null || position < 0 || position >= pointsOnRoute.size()) return;
+        Point point = pointsOnRoute.get(position);
         SpannableStringBuilder builder = new SpannableStringBuilder();
         
         int startName = builder.length();
@@ -217,11 +231,11 @@ public class PointAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
     @Override
     public int getItemCount() {
-        return (points != null) ? points.size() + 1 : 1;
+        return (pointsOnRoute != null) ? pointsOnRoute.size() + 1 : 1;
     }
 
-    public void updateData(List<Point> newPoints) {
-        this.points = newPoints;
+    public void updateData(List<Point> pointsOnRoute) {
+        this.pointsOnRoute = pointsOnRoute;
         currentDistances.clear();
         previousDistances.clear();
         notifyDataSetChanged();
@@ -246,5 +260,20 @@ public class PointAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
             super(itemView);
             textViewStatus = itemView.findViewById(R.id.textViewCurrentStatus);
         }
+    }
+    private Point createCurrentUserPoint(double lat, double lon) {
+    	Point p = new Point("----Current User----", lat, lon, "tu", null);
+        return p;
+    }
+    private void addCurrentUserPoint(Point p) {
+        Iterator<Point> iterator = this.pointsOnRoute.iterator();
+        while (iterator.hasNext()) {
+            Point p1= iterator.next();
+            if(p1.getName().equals("----Current User----")) {
+    			iterator.remove();
+    		}
+    	}
+		this.pointsOnRoute.add(p);
+
     }
 }
