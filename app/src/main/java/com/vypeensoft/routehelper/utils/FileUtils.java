@@ -17,8 +17,9 @@ public class FileUtils {
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
     public static File getRoutesDirectory() {
-        File downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-        File appDir = new File(downloadsDir, APP_DIR_NAME);
+        File sdcard = Environment.getExternalStorageDirectory();
+        File vypeensoftDir = new File(sdcard, "Vypeensoft");
+        File appDir = new File(vypeensoftDir, APP_DIR_NAME);
         if (!appDir.exists()) {
             appDir.mkdirs();
         }
